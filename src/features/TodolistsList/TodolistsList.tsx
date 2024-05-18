@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect} from 'react'
-import {useAppDispatch, useAppSelector} from '../../app/store'
+import React, { useCallback, useEffect } from 'react'
+import { useAppDispatch, useAppSelector } from '../../app/store'
 import {
     addTodolistTC,
     changeTodolistFilterAC,
@@ -9,20 +9,23 @@ import {
     removeTodolistTC,
     TodolistDomainType
 } from './todolists-reducer'
-import {addTaskTC, removeTaskTC, TasksStateType, updateTaskTC} from './tasks-reducer'
-import {TaskStatuses} from '../../api/todolists-api'
+import { addTaskTC, removeTaskTC, TasksStateType, updateTaskTC } from './tasks-reducer'
+import { TaskStatuses } from '../../api/todolists-api'
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
-import {AddItemForm} from '../../components/AddItemForm/AddItemForm'
-import {Todolist} from './Todolist/Todolist'
+import { AddItemForm } from '../../components/AddItemForm/AddItemForm'
+import { Todolist } from './Todolist/Todolist'
+import { Navigate } from 'react-router-dom'
 
 
 export const TodolistsList: React.FC = () => {
     const todolists = useAppSelector<Array<TodolistDomainType>>(state => state.todolists)
     const tasks = useAppSelector<TasksStateType>(state => state.tasks)
     const dispatch = useAppDispatch()
+    const isLoggedIn = useAppSelector(state => state.auth.isLoggedIn)
 
     useEffect(() => {
+        if (!isLoggedIn) return;
         const thunk = fetchTodolistsTC()
         dispatch(thunk)
     }, [])
@@ -38,12 +41,12 @@ export const TodolistsList: React.FC = () => {
     }, [])
 
     const changeStatus = useCallback(function (id: string, status: TaskStatuses, todolistId: string) {
-        const thunk = updateTaskTC(id, {status}, todolistId)
+        const thunk = updateTaskTC(id, { status }, todolistId)
         dispatch(thunk)
     }, [])
 
     const changeTaskTitle = useCallback(function (id: string, newTitle: string, todolistId: string) {
-        const thunk = updateTaskTC(id, {title: newTitle}, todolistId)
+        const thunk = updateTaskTC(id, { title: newTitle }, todolistId)
         dispatch(thunk)
     }, [])
 
@@ -68,9 +71,14 @@ export const TodolistsList: React.FC = () => {
     }, [dispatch])
 
 
+    if (!isLoggedIn) {
+        return <Navigate to={'/login'} />
+    }
+
+
     return <>
-        <Grid container style={{padding: '20px'}}>
-            <AddItemForm addItem={addTodolist}/>
+        <Grid container style={{ padding: '20px' }}>
+            <AddItemForm addItem={addTodolist} />
         </Grid>
         <Grid container spacing={3}>
             {
@@ -78,7 +86,7 @@ export const TodolistsList: React.FC = () => {
                     let allTodolistTasks = tasks[tl.id]
 
                     return <Grid item key={tl.id}>
-                        <Paper style={{padding: '10px'}}>
+                        <Paper style={{ padding: '10px' }}>
                             <Todolist
                                 todolist={tl}
                                 tasks={allTodolistTasks}

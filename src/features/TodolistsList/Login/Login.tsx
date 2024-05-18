@@ -9,13 +9,25 @@ import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import { useFormik } from 'formik'
 import { dividerClasses } from '@mui/material'
+import { useAppDispatch, useAppSelector } from '../../../app/store'
+import { loginTC } from './auth-reducer'
+import { Navigate } from 'react-router-dom'
 
 type ErrorsType = {
     email?: string,
     password?: string
 }
 
+export type LoginType = {
+    email: string,
+    password: string,
+    rememberMe: boolean
+}
+
+
 export const Login = () => {
+    const dispatch = useAppDispatch();
+    const isLoggedIn = useAppSelector(state => state.auth.isLoggedIn);
 
     const formik = useFormik({
         initialValues: {
@@ -35,18 +47,23 @@ export const Login = () => {
 
             if (!values.password) {
                 errors.password = 'Required'
-            } else if (values.password.length < 5) {
-                errors.password = 'the password should be longer then 4 symbols'
+            } else if (values.password.length < 4) {
+                errors.password = 'the password should be longer then 3 symbols'
             }
 
             return errors;
         },
         onSubmit: values => {
-            alert(JSON.stringify(values))
+            dispatch(loginTC(values))
+            formik.resetForm();
         },
     })
 
-    console.log(formik.errors)
+
+    if (isLoggedIn) {
+        return <Navigate to={'/todolists'} />
+    }
+
 
     return (
         <Grid container justifyContent={'center'}>
@@ -68,22 +85,18 @@ export const Login = () => {
                             <TextField
                                 label="Email"
                                 margin="normal"
-                                name='email'
-                                onChange={formik.handleChange}
-                                value={formik.values.email}
-                                error={!!formik.errors.email}
+                                error={!!(formik.touched.email && formik.errors.email)}
+                                {...formik.getFieldProps('email')}
                             />
-                            {formik.errors.email && <div style={{ 'color': 'red' }}>{formik.errors.email}</div>}
+                            {formik.touched.email && formik.errors.email && <div style={{ 'color': 'red' }}>{formik.errors.email}</div>}
                             <TextField
                                 type="password"
                                 label="Password"
                                 margin="normal"
-                                name='password'
-                                onChange={formik.handleChange}
-                                value={formik.values.password}
-                                error={!!formik.errors.password}
+                                error={!!(formik.touched.password && formik.errors.password)}
+                                {...formik.getFieldProps('password')}
                             />
-                            {formik.errors.password && <div style={{ 'color': 'red' }}>{formik.errors.password}</div>}
+                            {formik.touched.password && formik.errors.password && <div style={{ 'color': 'red' }}>{formik.errors.password}</div>}
                             <FormControlLabel
                                 label={'Remember me'}
                                 name='rememberMe'
